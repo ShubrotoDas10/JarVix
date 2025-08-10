@@ -27,7 +27,7 @@ import sys  # Added for sys.exit
 # Load environment variables
 env_vars = dotenv_values(".env")
 Username = env_vars.get("Username")
-AssistantName = env_vars.get("Assistantname")
+AssistantName = env_vars.get("AssistantName")
 
 DefaultMessage = f'''{Username}I: Hello {AssistantName}, How are you?
 {AssistantName}: Welcome {Username}. I am doing well. How may I help you?'''
