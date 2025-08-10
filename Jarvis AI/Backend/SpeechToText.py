@@ -6,33 +6,55 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 
 def SpeechRecognition():
-    # Set up Chrome options
+    # Chrome options
     options = webdriver.ChromeOptions()
-    options.add_argument('--use-fake-ui-for-media-stream')
+    options.add_argument('--use-fake-ui-for-media-stream')  # auto allow mic
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
-    options.add_experimental_option("excludeSwitches", ["enable-logging"])
+    # options.add_argument('--headless')  # mic won't work in headless mode
 
-    # Launch Chrome browser
     driver = webdriver.Chrome(service=Service(), options=options)
-    driver.get("https://watson-speech-to-text-demo.ng.bluemix.net/")
-
-
-    print("Speak something... (waiting for 10 seconds)")
-    time.sleep(10)  # Allow user to speak
-
     try:
-        # Wait up to 20 seconds for the output element to be present
+        print("Opening Google Web Speech API demo...")
+        driver.get("https://www.google.com/intl/en/chrome/demos/speech.html")
+
         wait = WebDriverWait(driver, 20)
-        output_element = wait.until(EC.presence_of_element_located((By.ID, "output")))
 
-        # Get the text from the output
-        text = output_element.text.strip()
+        # Click "Start" button to begin listening
+        start_button = wait.until(
+            EC.element_to_be_clickable((By.ID, "start_button"))
+        )
+        start_button.click()
+        print("Speak now... recording for 8 seconds")
 
-        if not text:
-            print("No speech detected.")
-        else:
+        time.sleep(8)  # Let Chrome listen to you
+
+        # Stop button click is optional — Google demo stops automatically on silence
+        try:
+            start_button.click()
+        except:
+            pass
+
+        print("Processing speech...")
+
+        # Wait for transcription text to appear
+        result_span = wait.until(
+            EC.presence_of_element_located((By.ID, "final_span"))
+        )
+
+        # Keep checking until we have some text or timeout
+        start_time = time.time()
+        text = ""
+        while time.time() - start_time < 5:  # 5 seconds max wait
+            text = result_span.text.strip()
+            if text:
+                break
+            time.sleep(0.5)
+
+        if text:
             print(f"You said: {text}")
+        else:
+            print("No speech detected.")
 
     except Exception as e:
         print(f"Error: {e}")
@@ -42,6 +64,5 @@ def SpeechRecognition():
 
     return text
 
-# Run the function
 if __name__ == "__main__":
-    result = SpeechRecognition()
+    SpeechRecognition()
